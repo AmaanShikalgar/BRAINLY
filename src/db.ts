@@ -1,21 +1,25 @@
 //create user models and schema here
-import mongoose, { Schema, model } from "mongoose";
-
-mongoose.connect(process.env.MONGO_URI!);
+import mongoose , { Schema, model } from "mongoose";
 
 const userSchema = new Schema ({
     email: {type:String, unique:true, required:true},
     password: {type:String , required:true},
-    firstName: String,
-    lastName: String
+    firstName: {type:String , required:true},
+    lastName: {type:String , required:true}
 });
 
 const contentSchema = new Schema ({
-    type : {type:String , required:true},
-    link : {type:String},
+    type : {type:String,
+            enum: ["twitter","youtube","document","link"],
+            required: true
+    },
+    link : {type:String,required:true},
     title: {type:String},
-    tags : {type:String}
-})
+    tags : [{type: mongoose.Types.ObjectId, ref: 'Tag'}],
+    userId:{type: mongoose.Types.ObjectId, ref: 'user', required:true}
+},{
+    timestamps:true
+});
 
 export const UserModel = model("user",userSchema);
 export const ContentModel = model("content",contentSchema);

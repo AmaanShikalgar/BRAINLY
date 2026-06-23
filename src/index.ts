@@ -1,71 +1,140 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express" ;
-import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import {UserModel} from "./db";
+import mongoose from "mongoose";
+import {ContentModel, UserModel} from "./db";
+import { userMiddleware } from "./middleware";
+import { signupSchema, signinSchema, contentScheme } from "./zod";
 const JWT_USER_SECRET = process.env.JWT_USER_SECRET!;
+
+mongoose.connect(process.env.MONGO_URI!)
+  .then(() => {
+    console.log("MongoDB Connected");
+  })
+  .catch((err) => {
+    console.error("Mongo Error:", err);
+  });
 
 const app = express();
 app.use(express.json());
 
 app.post("/api/v1/signup", async (req,res)=>{
-    const {email, password , firstName, lastName} =req.body;
+
+    const parsed = signupSchema.safeParse(req.body);
+
+    if(!parsed.success){
+        return res.status(411).json({
+            message: "Error in credentials"
+        });
+    }
+
+    const {email, password , firstName, lastName} = parsed.data;
 
     try{
         const  hashedPassword = await bcrypt.hash(password,5);
 
         await UserModel.create({
-            email: email,
+            email,
             password:hashedPassword,
             firstName,
             lastName
         });
-        res.json({
+        return res.status(200).json({
             message : "Signup Succeeded"
         });
     }catch(err){
-        res.status(403).json({
-            message:"Invalid Credentials"
+        return res.status(403).json({
+            message:"User Already Exists"
         });
     }
 });
 
 app.post("/api/v1/signin", async (req,res)=>{
-    const {email,password} =req.body;
 
-    const user = await UserModel.findOne({
-        email:email
+    const parsed = signinSchema.safeParse(req.body);
+
+    if(!parsed.success){
+        return res.status(411).json({
+            message:"error in credentials"
+        });
+    }
+
+    const {email,password} = parsed.data;
+
+    const existingUser = await UserModel.findOne({
+        email
     });
 
-    if(!user){
+    if(!existingUser){
         return res.status(403).json({
             message:"user not found"
         });
     }
 
-    const passwordMatch = await bcrypt.compare(password,user.password);
+    const passwordMatch = await bcrypt.compare(password,existingUser.password);
 
-    if(passwordMatch){
-        const token = jwt.sign({
-            id: user._id
-        },JWT_USER_SECRET);
+    if(!passwordMatch){
+        return res.status(403).json({
+            message:"invalid credentials"
+        });
     }
-} )
+        const token = jwt.sign({
+            id: existingUser._id
+        },JWT_USER_SECRET);
+
+        return res.json({
+            message:"Signin Successfully",token
+        });
+});
 
 
-app.post("/api/v1/content", (req,res)=>{
-    
-} )
+app.post("/api/v1/content", userMiddleware,async (req,res)=>{
 
-app.get("/api/v1/content", (req,res)=>{
-    
-} )
+    const parsed = contentScheme.safeParse(req.body);
+
+    if(!parsed.success){
+        return res.status(411).json({
+            message: "Invalid content data"
+        });
+    }
+
+    const{link,type,title} = parsed.data;
+    try{
+        await ContentModel.create({
+            link,
+            type,
+            title,
+            //@ts-ignore
+            userId: req.userId,
+            tags: []
+        });
+
+        return res.json({
+            message:"Content Created"
+        });
+    }catch(err){
+        return res.status(500).json({
+            message:"Error creating content"
+        });
+    }
+});
+
+app.get("/api/v1/content",userMiddleware, async (req,res)=>{
+    //@ts-ignore
+    const userId = req.userId
+    const content = await ContentModel.find({
+        userId:userId
+    })
+    res.json({
+        content
+    })
+})
 
 app.delete("/api/v1/content", (req,res)=>{
     
-} )
+})
 
 app.post("/api/v1/brain/share", (req,res)=>{
 
