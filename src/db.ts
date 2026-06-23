@@ -1,7 +1,7 @@
 //create user models and schema here
-import mongoose = require ('mongoose');
-const Schema = mongoose.Schema;
-const ObjectID = mongoose.Schema.Types.ObjectId;
+import mongoose, { Schema, model } from "mongoose";
+
+mongoose.connect("mongodb+srv://admin:1234@cluster0.tkt131r.mongodb.net/BRAINLY")
 
 const userSchema = new Schema ({
     email: {type:String, unique:true, required:true},
@@ -17,10 +17,5 @@ const contentSchema = new Schema ({
     tags : {type:String}
 })
 
-const UserModel = mongoose.model("user",userSchema);
-const ContentModel = mongoose.model("content",contentSchema);
-
-module.exports={
-    UserModel,
-    ContentModel
-}
+export const UserModel = model("user",userSchema);
+export const ContentModel = model("content",contentSchema);
