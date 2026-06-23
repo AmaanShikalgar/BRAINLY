@@ -1,11 +1,11 @@
-import express from "express" ;
-import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
+import express from "express" ;
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import {UserModel} from "./db";
-import JWT_USER_SECRET = process.env.JWT_USER_SECRET;
+const JWT_USER_SECRET = process.env.JWT_USER_SECRET!;
 
 const app = express();
 app.use(express.json());
@@ -52,7 +52,6 @@ app.post("/api/v1/signin", async (req,res)=>{
             id: user._id
         },JWT_USER_SECRET);
     }
-
 } )
 
 
@@ -74,4 +73,8 @@ app.post("/api/v1/brain/share", (req,res)=>{
 
 app.get("/api/v1/brain/:shareLink", (req,res)=>{
 
+})
+
+app.listen(3000, function(){
+    console.log("running on port 3000")
 })

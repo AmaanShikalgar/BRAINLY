@@ -1,7 +1,7 @@
 //create user models and schema here
 import mongoose, { Schema, model } from "mongoose";
 
-mongoose.connect("mongodb+srv://admin:1234@cluster0.tkt131r.mongodb.net/BRAINLY")
+mongoose.connect(process.env.MONGO_URI!);
 
 const userSchema = new Schema ({
     email: {type:String, unique:true, required:true},
