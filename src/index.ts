@@ -4,7 +4,8 @@ import express from "express" ;
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import {ContentModel, UserModel} from "./db";
+import crypto from 'crypto';
+import {ContentModel, UserModel, LinkModel} from "./db";
 import { userMiddleware } from "./middleware";
 import { signupSchema, signinSchema, contentScheme } from "./zod";
 const JWT_USER_SECRET = process.env.JWT_USER_SECRET!;
@@ -126,7 +127,7 @@ app.get("/api/v1/content",userMiddleware, async (req,res)=>{
     const userId = req.userId
     const content = await ContentModel.find({
         userId:userId
-    })
+    }).populate("userId","firstName")
     res.json({
         content
     })
@@ -163,13 +164,78 @@ app.delete("/api/v1/content", userMiddleware, async (req,res)=>{
     }
 });
 
-app.post("/api/v1/brain/share", (req,res)=>{
+app.post("/api/v1/brain/share", userMiddleware,async(req,res)=>{
+    const{share}=req.body;
+    //@ts-ignore
+    const userId = req.userId;
+    try{
+        if(share){
+            const existingLink = await LinkModel.findOne({
+                userId
+            });
 
-})
+            if(existingLink){
+                return res.json({
+                    link: existingLink.hash
+                });
+            }
 
-app.get("/api/v1/brain/:shareLink", (req,res)=>{
+            const hash = crypto.randomBytes(8).toString('hex');
 
-})
+            await LinkModel.create({
+                hash,userId
+            });
+
+            return res.json({
+                link:hash
+            });
+        }
+
+        await LinkModel.deleteOne({
+            userId
+        });
+
+        return res.json({
+            message:"Sharing disabled"
+        });
+    }catch(err){
+        return res.status(500).json({
+            message: "Server Error"
+        });
+    }
+});
+
+app.get("/api/v1/brain/:shareLink", async(req,res)=>{
+    try{
+        const hash = req.params.shareLink;
+
+        const link = await LinkModel.findOne({
+            hash
+        });
+
+        if(!link){
+            return res.status(404).json({
+                message: "Invalid share link"
+            });
+        }
+
+        const content = await ContentModel.find({
+            userId: link.userId
+        });
+
+        const user = await UserModel.findById(link.userId);
+
+        return res.json({
+            username: user?.firstName,
+            content
+        });
+
+    }catch(err){
+        return res.status(500).json({
+            message: "Server error"
+        });
+    }
+});
 
 app.listen(3000, function(){
     console.log("running on port 3000")
