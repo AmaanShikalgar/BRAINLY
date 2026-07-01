@@ -9,6 +9,7 @@ import {ContentModel, UserModel, LinkModel} from "./db";
 import { userMiddleware } from "./middleware";
 import { signupSchema, signinSchema, contentScheme } from "./zod";
 const JWT_USER_SECRET = process.env.JWT_USER_SECRET!;
+import cors from "cors";
 
 mongoose.connect(process.env.MONGO_URI!)
   .then(() => {
@@ -17,9 +18,17 @@ mongoose.connect(process.env.MONGO_URI!)
   .catch((err) => {
     console.error("Mongo Error:", err);
   });
-
+  
 const app = express();
+
+app.use(cors({
+      origin: "http://localhost:5173",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"]
+  }));
+  
 app.use(express.json());
+
 
 app.post("/api/v1/signup", async (req,res)=>{
 
