@@ -3,6 +3,7 @@ dotenv.config();
 import express from "express" ;
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import ogs from 'open-graph-scraper';
 import mongoose from "mongoose";
 import crypto from 'crypto';
 import {ContentModel, UserModel, LinkModel} from "./db";
@@ -10,6 +11,7 @@ import { userMiddleware } from "./middleware";
 import { signupSchema, signinSchema, contentScheme } from "./zod";
 const JWT_USER_SECRET = process.env.JWT_USER_SECRET!;
 import cors from "cors";
+
 
 mongoose.connect(process.env.MONGO_URI!)
   .then(() => {
@@ -171,6 +173,28 @@ app.delete("/api/v1/content", userMiddleware, async (req,res)=>{
         return res.status(500).json({
             message: "Server error"
         });
+    }
+});
+
+app.post("/api/v1/preview", userMiddleware, async (req, res) => {
+    try {
+        const { url } = req.body;
+        const { result } = await ogs({ 
+            url,
+            fetchOptions: {
+                headers: {
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            }
+        });
+        return res.json({
+            title: result.ogTitle || "",
+            description: result.ogDescription || "",
+            image: result.ogImage?.[0]?.url || "",
+            siteName: result.ogSiteName || ""
+        });
+    } catch (err) {
+        return res.status(500).json({ message: "Could not fetch preview" });
     }
 });
 

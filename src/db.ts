@@ -10,7 +10,7 @@ const userSchema = new Schema ({
 
 const contentSchema = new Schema ({
     type : {type:String,
-            enum: ["twitter","youtube","document","link"],
+            enum: ["twitter","youtube","document","link","instagram","reddit"],
             required: true
     },
     link : {type:String,required:true,unique:true},

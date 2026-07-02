@@ -25,7 +25,9 @@ export const contentScheme = z.object({
         "twitter",
         "youtube",
         "document",
-        "link"
+        "link",
+        "instagram",
+        "reddit"
     ]),
 
     title: z.string()
