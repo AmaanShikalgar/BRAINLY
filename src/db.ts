@@ -13,7 +13,7 @@ const contentSchema = new Schema ({
             enum: ["twitter","youtube","document","link"],
             required: true
     },
-    link : {type:String,required:true},
+    link : {type:String,required:true,unique:true},
     title: {type:String},
     tags : [{type: mongoose.Types.ObjectId, ref: 'Tag'}],
     userId:{type: mongoose.Types.ObjectId, ref: 'user', required:true}

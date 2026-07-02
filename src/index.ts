@@ -124,10 +124,11 @@ app.post("/api/v1/content", userMiddleware,async (req,res)=>{
         return res.json({
             message:"Content Created"
         });
-    }catch(err){
-        return res.status(500).json({
-            message:"Error creating content"
-        });
+    } catch(err: any) {
+        if(err.code === 11000){
+            return res.status(409).json({ message: "Content already exists" });
+        }
+        return res.status(500).json({ message: "Error creating content" });
     }
 });
 
