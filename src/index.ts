@@ -13,13 +13,20 @@ const JWT_USER_SECRET = process.env.JWT_USER_SECRET!;
 import cors from "cors";
 
 
-mongoose.connect(process.env.MONGO_URI!)
-  .then(() => {
+async function start() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI!);
     console.log("MongoDB Connected");
-  })
-  .catch((err) => {
-    console.error("Mongo Error:", err);
-  });
+
+    app.listen(PORT, () => {
+      console.log(`Server running on ${PORT}`);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+start();
   
 const app = express();
 
