@@ -32,11 +32,11 @@ const app = express();
 
 app.use(cors({
       origin: ["http://localhost:5173",
-      "https://brainly-secondbrain.vercel.app/signin"],
+      "https://brainly-secondbrain.vercel.app"],
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Content-Type", "Authorization"]
   }));
-  
+
 app.use(express.json());
 
 app.post("/api/v1/signup", async (req,res)=>{
