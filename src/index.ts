@@ -31,7 +31,6 @@ app.use(cors({
   
 app.use(express.json());
 
-
 app.post("/api/v1/signup", async (req,res)=>{
 
     const parsed = signupSchema.safeParse(req.body);
@@ -271,6 +270,8 @@ app.get("/api/v1/brain/:shareLink", async(req,res)=>{
     }
 });
 
-app.listen(3000, function(){
-    console.log("running on port 3000")
-})
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
